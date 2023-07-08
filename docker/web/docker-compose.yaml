@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    container_name: fullcycle-mysql
+    restart: always
+    tty: true
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - fcwebnet
+
+  node:
+    build:
+      context: ./node
+    image: biadreveck/fullcycle-docker-node:dev
+    container_name: fullcycle-node
+    entrypoint: dockerize -wait tcp://mysql:3306 -timeout 20s docker-entrypoint.sh
+    command: node index.js
+    tty: true
+    volumes:
+      - ./node:/usr/src/app
+    networks:
+      - fcwebnet
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+
+  nginx:
+    build:
+      context: ./nginx
+    image: biadreveck/fullcycle-docker-nginx:dev
+    container_name: fullcycle-nginx
+    networks:
+      - fcwebnet
+    ports:
+      - "8080:80"
+    depends_on:
+      - node
+
+networks:
+  fcwebnet:
+    driver: bridge
