@@ -23,8 +23,6 @@ services:
     entrypoint: dockerize -wait tcp://mysql:3306 -timeout 60s docker-entrypoint.sh
     command: node index.js
     tty: true
-    volumes:
-      - ./node:/usr/src/app
     networks:
       - fcwebnet
     ports:
